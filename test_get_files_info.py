@@ -13,5 +13,5 @@ if __name__ == "__main__":
         print(f"Result for '{directory}' in '{working_directory}/':")
         result = get_files_info(working_directory, directory)
         print(result)
-        print("-" * 40)
+        print("-" * 60)
 
