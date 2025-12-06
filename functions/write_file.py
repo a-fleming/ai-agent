@@ -8,9 +8,9 @@ def write_file(working_directory, file_path, content):
         return f'Error: Cannot write to "{file_path}" as it is outside the permitted working directory'
     
     try:
-            with open(target_path, 'w') as file:
-                file.write(content + "\n")
-                return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
+        with open(target_path, 'w') as file:
+            file.write(content + "\n")
+            return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
     except Exception as e:
         return f"Error writing file: {e}"
 
