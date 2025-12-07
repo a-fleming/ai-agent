@@ -1,10 +1,10 @@
+import argparse
 import os
 import subprocess
 
-from functions.config import RUN_PYTHON_FILE_TIMEOUT_SECONDS
+from config import RUN_PYTHON_FILE_TIMEOUT_SECONDS
 
 def run_python_file(working_directory, file_path, args=[]):
-    print(f"args: {args}")
     if not file_path.endswith('.py'):
         return f'Error: "{file_path}" is not a Python file.'
     
@@ -32,3 +32,12 @@ def run_python_file(working_directory, file_path, args=[]):
         return output if output else "No output produced"
     except Exception as e:
         return f"Error: executing Python file: {e}"
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run a Python file within the working directory")
+    parser.add_argument("file", type=str, help="Python file path to run")
+    parser.add_argument("args", nargs='*', help="Arguments to pass to the Python file")
+    args = parser.parse_args()
+
+    working_directory = os.getcwd()
+    print(run_python_file(working_directory, args.file, args.args))

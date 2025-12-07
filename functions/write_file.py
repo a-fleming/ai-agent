@@ -16,7 +16,7 @@ def write_file(working_directory, file_path, content):
         return f"Error writing file: {e}"
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Chatbot")
+    parser = argparse.ArgumentParser(description="Write content to a file within the working directory")
     parser.add_argument("file", type=str, help="File path to write to")
     parser.add_argument("content", type=str, help="Content to write to the file")
     args = parser.parse_args()

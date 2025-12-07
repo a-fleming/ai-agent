@@ -1,3 +1,4 @@
+import argparse
 import os
 
 from google.genai import types
@@ -56,5 +57,7 @@ def get_files_info(working_directory, directory):
 
 if __name__ == "__main__":
     working_directory = os.getcwd()
-    directory = input("Enter directory to list (default is current directory): ") or "."
-    print(get_files_info(working_directory, directory))
+    parser = argparse.ArgumentParser(description="List info about files and directories inside a directory within the working directory")
+    parser.add_argument("directory", type=str, help="Directory to list files from")
+    args = parser.parse_args()
+    print(get_files_info(working_directory, args.directory))

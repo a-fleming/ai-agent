@@ -1,6 +1,7 @@
+import argparse
 import os
 
-from functions.config import MAX_FILE_READ_CHARACTERS
+from config import MAX_FILE_READ_CHARACTERS
 
 def get_file_content(working_directory, file_path):
     abs_working_dir = os.path.abspath(working_directory)
@@ -22,5 +23,7 @@ def get_file_content(working_directory, file_path):
 
 if __name__ == "__main__":
     working_directory = os.getcwd()
-    file_path = input("Enter file path to read: ")
-    print(get_file_content(working_directory, file_path))
+    parser = argparse.ArgumentParser(description="Read content of a file within the working directory")
+    parser.add_argument("file_path", type=str, help="Path of the file to read")
+    args = parser.parse_args()
+    print(get_file_content(working_directory, args.file_path))
