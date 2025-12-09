@@ -1,11 +1,12 @@
 import argparse
 import os
 
+from call_function import available_functions
+from config import MODEL_NAME
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from prompts import system_prompt
-from call_function import available_functions
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
@@ -20,7 +21,7 @@ def main():
     messages = [types.Content(role="user", parts=[types.Part(text=args.prompt)])]
 
     client = genai.Client(api_key=api_key)
-    model_name = "gemini-2.5-flash"
+    model_name = MODEL_NAME
     response = client.models.generate_content(
         model=model_name, 
         contents=messages,
@@ -42,7 +43,6 @@ def main():
             else:
                 print(f"Calling function: {function_call_part.name}()  # no arguments")
             
-
 
 if __name__ == "__main__":
     main()
