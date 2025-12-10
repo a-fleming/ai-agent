@@ -1,12 +1,13 @@
 import argparse
 import os
+import sys
 
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
 from call_function import available_functions, call_function
-from config import MODEL_NAME
+from config import MAX_ITERATIONS, MODEL_NAME
 from prompts import system_prompt
 
 
@@ -26,43 +27,64 @@ def main():
     
     if args.verbose:
         print(f"User prompt: {args.prompt}")
-    generate_content(client, messages, args.verbose)
-
+    
+    iteration = 0
+    while True:
+        iteration += 1
+        if iteration > MAX_ITERATIONS:
+            print(f"Stopped after maximum iterations ({MAX_ITERATIONS}).")
+            sys.exit(1)
+        try:
+            final_response = generate_content(client, messages, args.verbose)
+            if args.verbose:
+                print(f"{'*' * 15} End of iteration {iteration} {'*' * 15}")
+            if final_response:
+                print("Final response:")
+                print(final_response)
+                break
+        except Exception as e:
+            print(f"Exception raised in generate_content(): {e}")
+            sys.exit(1)
 
 def generate_content(client, messages, verbose):
-    response = client.models.generate_content(
+    client_response = client.models.generate_content(
         model=MODEL_NAME, 
         contents=messages,
         config=types.GenerateContentConfig(
             tools=[available_functions],
-            system_instruction=system_prompt)
+            system_instruction=system_prompt),
     )
-    if not response.usage_metadata:
-        raise RuntimeError("No usage metadata found in the response.")
+    if not client_response.usage_metadata:
+        raise RuntimeError("Gemini API response appears to be malformed.")
     
     if verbose:
-        print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
-        print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+        print(f"Prompt tokens: {client_response.usage_metadata.prompt_token_count}")
+        print(f"Response tokens: {client_response.usage_metadata.candidates_token_count}")
     
-    if not response.function_calls:
-        print(f"Response:\n{response.text}")
-        return
+    # Check if model is finished
+    if not client_response.function_calls:
+        return client_response.text
+    
+    for candidate in client_response.candidates:
+        messages.append(candidate.content)
 
-    responses = []
-    for function_call_part in response.function_calls:
-        result = call_function(function_call_part, verbose)
+    function_results = []
+    for function_call_part in client_response.function_calls:
+        function_result = call_function(function_call_part, verbose)
         if (
-            not result.parts
-            or not result.parts[0].function_response.response
+            not function_result.parts
+            or not function_result.parts[0].function_response.response
         ):
             raise Exception("Empty function call result.")
         
         if verbose:
-            print(f"-> {result.parts[0].function_response.response}")
+            print(f"-> {function_result.parts[0].function_response.response}")
+        function_results.append(function_result.parts[0])
 
-        responses.append(result.parts[0])
-    if not responses:
-        raise Exception("No function call responses to process.")
+    if not function_results:
+        raise Exception("No function call results to process.")
+    messages.append(types.Content(role="user", parts=function_results))
+    
 
 if __name__ == "__main__":
     main()
